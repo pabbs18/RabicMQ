@@ -27,22 +27,36 @@ public class RabicMQueue {
         return topic;
     }
 
-    //to subscribe to a topic, you need a subscriber, a topic to subscribe.
-    //the topic adds the subscriber to its subscribersList by wrapping a subscriber in a TopicSubscriber
+ /*   to subscribe to a topic, you need a subscriber, a topic to subscribe.
+    the topic adds the subscriber to its subscribersList by wrapping a subscriber in a TopicSubscriber*/
     public void subscribe(@NonNull final ISubscriber subscriber, @NonNull final Topic topic){
         topic.addTopicSubscriber(new TopicSubscriber(subscriber));
         System.out.println(subscriber.getId()+" Subscribed to "+ topic.getTopicName());
     }
 
-    //to publish a message to a topi, you need a topic and a message.
-    //this method adds a message to the messageList in a topic and then calls the corresponding
-    //topicHandler from the above topic_Handler_Map to publish the message
+   /* to publish a message to a topic, you need a topic and a message.
+    this method adds a message to the messageList in a topic and then calls the corresponding
+    topicHandler from the above topic_Handler_Map to publish the message*/
     public void publish(@NonNull final Topic topic, @NonNull final Message message){
         topic.addMessage(message);
-        System.out.println(message+" published to "+topic.getTopicName());
+        System.out.println(message.getMsg()+" published to "+topic.getTopicName());
         topic_Handler_Map.get(topic.getTopicId()).publish();
     }
 
+    /*this method gets all the topicSubscribers from the topicSubscribers list.
+        if the given subscriber is already present, then it resets its messageOffset.
+    It then gets the topicHandler for the given topic and on that topicHandler object,
+    calls the method 'startSubscriberWorker' for the topicSubscriber on a new thread.*/
+    public void resetOffset(@NonNull Topic topic, @NonNull final ISubscriber subscriber, @NonNull final Integer newOffsetValue){
+        for(TopicSubscriber topicSubscriber: topic.getTopicSubscribersList()){
+            if(topicSubscriber.getSubscriber().equals(subscriber)){
+                topicSubscriber.getMessageOffset().set(newOffsetValue);
+                System.out.println(topicSubscriber.getSubscriber().getId() +" message offset set to "+newOffsetValue);
+                new Thread(() -> topic_Handler_Map.get(topic.getTopicId()).startSubscriberWorker(topicSubscriber)).start();
+                break;
+            }
+        }
+    }
 
 
 }

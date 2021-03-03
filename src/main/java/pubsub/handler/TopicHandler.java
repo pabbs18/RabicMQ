@@ -34,12 +34,14 @@ public class TopicHandler {
     on a new thread.*/
     public void startSubscriberWorker(@NonNull final TopicSubscriber topicSubscriber){
         final String subscriberId = topicSubscriber.getSubscriber().getId();
-        if(subscriber_WorkerMap.containsKey(subscriberId)){
+
+        if(!subscriber_WorkerMap.containsKey(subscriberId)){
             final SubscriberWorker subscriberWorker = new SubscriberWorker(topic, topicSubscriber);
             subscriber_WorkerMap.put(subscriberId, subscriberWorker);
             new Thread(subscriberWorker).start();
         }
-        final SubscriberWorker subscriberWorker = subscriber_WorkerMap.get(subscriberId);
-        subscriberWorker.wakeUpIfNeeded();
+            final SubscriberWorker subscriberWorker = subscriber_WorkerMap.get(subscriberId);
+            subscriberWorker.wakeUpIfNeeded();
+
     }
 }
